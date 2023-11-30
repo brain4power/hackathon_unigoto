@@ -20,6 +20,7 @@ docker compose up -d --build data-collector
 
 ### utils
 ```shell
+docker compose logs -n 100 data-collector
 docker compose exec h-data-pg psql -U h_user -d h_core
 ```
 ```postgresql
