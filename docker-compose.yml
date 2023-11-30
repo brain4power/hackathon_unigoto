@@ -1,0 +1,26 @@
+version: "3.3"
+services:
+  h-data-pg:
+    container_name: h-data-pg
+    image: ankane/pgvector
+    env_file:
+      - .env
+    volumes:
+      - ./volumes/h-data-pg/data:/var/lib/postgresql/data/
+      - ./volumes/h-data-pg/csv:/csv
+      - ./configs/${STAND_CONFIG_FOLDER}/h-data-pg/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+    healthcheck:
+      test: [ 'CMD-SHELL', 'pg_isready -U $${POSTGRES_USER}' ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  data-collector:
+    build: ./src/data_collector
+    container_name: data-collector
+    depends_on:
+      - h-data-pg
+    env_file:
+      - .env
+    command: python __main__.py

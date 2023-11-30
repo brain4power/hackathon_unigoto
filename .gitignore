@@ -3,3 +3,5 @@
 .eggs
 *.pyc
 *.egg-info
+volumes/*
+!volumes/.gitkeep
