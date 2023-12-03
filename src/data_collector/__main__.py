@@ -94,6 +94,7 @@ async def async_main() -> None:
                         )
                     )
             if data:
+                logger.info(f"Ready to save {len(data)} records")
                 await session.execute(insert(RawData), data)
                 await session.commit()
             logger.info(f"Done save data for page: {start_page_number}")
