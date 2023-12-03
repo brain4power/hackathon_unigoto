@@ -47,32 +47,55 @@ async def async_main() -> None:
                 error_count -= 1
                 await asyncio.sleep(settings.COLLECTOR_TIMEOUT)
                 continue
-            data = [
-                dict(
-                    page_number=start_page_number,
-                    deactivated=el.get("deactivated"),
-                    country_id=el.get("country").get("id"),
-                    country_title=el.get("country").get("title"),
-                    city_id=el.get("city").get("id"),
-                    city_title=el.get("city").get("title"),
-                    about=el.get("about"),
-                    activities=el.get("activities"),
-                    books=el.get("books"),
-                    games=el.get("games"),
-                    interests=el.get("interests"),
-                    education_form=el.get("education_form"),
-                    education_status=el.get("education_status"),
-                    university_id=el.get("university"),
-                    university_name=el.get("university_name"),
-                    faculty_id=el.get("faculty"),
-                    faculty_name=el.get("faculty_name"),
-                    graduation_year=el.get("graduation"),
+            data = list()
+            for el in response.json()["response"]:
+                university_id = el.get("university")
+                faculty_id = el.get("faculty")
+                country_title = el.get("country").get("title")
+                city_title = el.get("city").get("title")
+                about = el.get("about")
+                activities = el.get("activities")
+                books = el.get("books")
+                games = el.get("games")
+                interests = el.get("interests")
+                merged_data = "".join(
+                    [
+                        country_title,
+                        city_title,
+                        about,
+                        activities,
+                        books,
+                        games,
+                        interests,
+                    ]
                 )
-                for el in response.json()["response"]
-            ]
-
-            await session.execute(insert(RawData), data)
-            await session.commit()
+                merged_data = merged_data.replace(" ", "")
+                if university_id != 0 and faculty_id != 0 and merged_data:
+                    data.append(
+                        dict(
+                            page_number=start_page_number,
+                            deactivated=el.get("deactivated"),
+                            country_id=el.get("country").get("id"),
+                            country_title=country_title,
+                            city_id=el.get("city").get("id"),
+                            city_title=city_title,
+                            about=about,
+                            activities=activities,
+                            books=books,
+                            games=games,
+                            interests=interests,
+                            education_form=el.get("education_form"),
+                            education_status=el.get("education_status"),
+                            university_id=university_id,
+                            university_name=el.get("university_name"),
+                            faculty_id=faculty_id,
+                            faculty_name=el.get("faculty_name"),
+                            graduation_year=el.get("graduation"),
+                        )
+                    )
+            if data:
+                await session.execute(insert(RawData), data)
+                await session.commit()
             logger.info(f"Done save data for page: {start_page_number}")
             start_page_number -= 1
             logger.info("Will take a nap...")
