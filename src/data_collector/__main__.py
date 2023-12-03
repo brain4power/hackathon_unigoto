@@ -10,8 +10,8 @@ from sqlalchemy import func, insert
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
 # Project
-from config import Database, settings
-from models import RawData
+from config import Database, settings, DeclarativeBase
+from models import *
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
