@@ -299,8 +299,8 @@ services:
   h-data-pg:
     container_name: h-data-pg
     image: ankane/pgvector
-    ports:
-      - "55432:5432"
+#    ports:
+#      - "55432:5432"
     env_file:
       - .env
     volumes:
@@ -323,6 +323,20 @@ services:
     env_file:
       - .env
     command: python __main__.py
+
+  h-api:
+    container_name: h-api
+    restart: unless-stopped
+    build: ./src/api
+    ports:
+      - "8010:80"
+    depends_on:
+      - h-data-pg
+    command: uvicorn main:app --host 0.0.0.0 --port 80 --proxy-headers
+    env_file:
+      - .env
+    environment:
+      PROJECT_NAME: ${COMPOSE_PROJECT}
 
 volumes:
   postgres-db-volume:

@@ -1,8 +1,5 @@
-import json
 import logging
 from datetime import datetime
-from itertools import islice
-from typing import Iterable
 
 import faust
 from sqlalchemy import update, select, and_, func, text
