@@ -70,7 +70,7 @@ async def async_main() -> None:
                     ]
                 )
                 merged_data = merged_data.replace(" ", "")
-                if university_id != 0 and faculty_id != 0 and merged_data:
+                if faculty_id != 0 and merged_data:
                     data.append(
                         dict(
                             page_number=start_page_number,
