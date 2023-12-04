@@ -45,7 +45,7 @@ WORKDIR /app
 COPY . /app
 
 # cleanup
-RUN apt-get remove -y build-essential gcc python3-dev git g++ \
-    && apt-get clean autoclean \
-    && apt-get autoremove --yes \
-    && rm -rf /var/lib/{apt,dpkg,cache,log}/
+# RUN apt-get remove -y build-essential gcc python3-dev git g++ \
+#    && apt-get clean autoclean \
+#    && apt-get autoremove --yes \
+#    && rm -rf /var/lib/{apt,dpkg,cache,log}/

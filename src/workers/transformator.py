@@ -1,5 +1,7 @@
 import logging
 from datetime import datetime
+from itertools import islice
+from typing import Iterable
 
 import faust
 from sqlalchemy import update, select, and_, func, text
@@ -39,6 +41,18 @@ transformator_task_topic = app.topic(
     value_type=MessageValue,
     partitions=settings.TF_PARTITIONS,
 )
+
+
+def batched(iterable: Iterable, n: int):
+    """
+    batched('ABCDEFG', 3) --> ABC DEF G
+    (from itertools.batched of python 3.12)
+    """
+    if n < 1:
+        raise ValueError("n must be at least one")
+    it = iter(iterable)
+    while batch := tuple(islice(it, n)):
+        yield batch
 
 
 @app.agent(transformator_task_topic, concurrency=settings.TF_CONCURRENCY)
@@ -103,23 +117,26 @@ async def transformator(stream) -> None:
                     new_faculty_records = query.fetchall()
                     logger.info(f"Got {len(new_faculty_records)} records")
                     if new_faculty_records:
-                        new_direction_ids = await connection.execute(
-                            insert(EducationDirection)
-                            .values(
-                                [
-                                    {
-                                        "university_id": record.university_id,
-                                        "university_name": record.university_name,
-                                        "faculty_id": record.faculty_id,
-                                        "faculty_name": record.faculty_name,
-                                    }
-                                    for record in new_faculty_records
-                                ]
-                            ).on_conflict_do_nothing(index_elements=["faculty_id"]).returning(text("faculty_id"))
-                        )
-                        new_faculty_ids = new_direction_ids.fetchall()
-                        new_faculty_ids = [f.faculty_id for f in new_faculty_ids]
-                        logger.info(f"New new_faculty_ids len: {len(new_faculty_ids)}")
+                        insert_faculty_records_data = [
+                            {
+                                "university_id": record.university_id,
+                                "university_name": record.university_name,
+                                "faculty_id": record.faculty_id,
+                                "faculty_name": record.faculty_name,
+                            }
+                            for record in new_faculty_records
+                        ]
+                        for data_chunk in batched(insert_faculty_records_data, 1000):
+                            await connection.execute(
+                                insert(EducationDirection)
+                                .values(
+                                    data_chunk
+                                ).on_conflict_do_nothing(index_elements=["faculty_id"])
+                                # .returning(text("faculty_id"))
+                            )
+                            # new_faculty_ids = new_direction_ids.fetchall()
+                        # new_faculty_ids = [f.faculty_id for f in new_faculty_ids]
+                        # logger.info(f"New new_faculty_ids len: {len(new_faculty_ids)}")
                         # faculty_ids.extend(new_faculty_ids)
                         await connection.commit()
                         logger.info(f"Done insert new EducationDirection")
@@ -140,7 +157,8 @@ async def transformator(stream) -> None:
                     new_records_data = new_records_data.fetchall()
                     if not new_records_data:
                         logger.info(f"len new_records_data: {len(new_records_data)}")
-                        task_update_values = {"state": "DONE", "to_page": working_to_page, "time_task_end": datetime.now()}
+                        task_update_values = {"state": "DONE", "to_page": working_to_page,
+                                              "time_task_end": datetime.now()}
                         await connection.execute(
                             update(ServiceTask)
                             .where(ServiceTask.record_id == msg_key.message_id)
@@ -152,25 +170,28 @@ async def transformator(stream) -> None:
                     texts = [r.g_merged_data for r in new_records_data]
                     # transform texts to embeddings
                     embeddings = embedding_model.encode(texts)
-                    await connection.execute(
-                        insert(AdditionalData).values(
-                            [
-                                {
-                                    "raw_record_id": record.record_id,
-                                    "direction_id": record.direction_id,
-                                    "embedding": embeddings[idx],
-                                }
-                                for idx, record in enumerate(new_records_data)
-                            ]
-                        ).on_conflict_do_nothing(index_elements=["raw_record_id"])
-                    )
+                    insert_records_data = [
+                        {
+                            "raw_record_id": record.record_id,
+                            "direction_id": record.direction_id,
+                            "embedding": embeddings[idx],
+                        }
+                        for idx, record in enumerate(new_records_data)
+                    ]
+                    for data_chunk in insert_records_data:
+                        await connection.execute(
+                            insert(AdditionalData).values(
+                                data_chunk
+                            ).on_conflict_do_nothing(index_elements=["raw_record_id"])
+                        )
                     logger.info(f"Done cycle with working_from_page: {working_from_page}, "
                                 f"working_to_page: {working_to_page}")
                     # redeclare working pages
                     working_from_page = working_to_page - 1
                     working_to_page = max(working_from_page - batch_size, to_page)
 
-                task_update_values = {"state": "DONE", "to_page": working_from_page + 1, "time_task_end": datetime.now()}
+                task_update_values = {"state": "DONE", "to_page": working_from_page + 1,
+                                      "time_task_end": datetime.now()}
                 await connection.execute(
                     update(ServiceTask)
                     .where(ServiceTask.record_id == msg_key.message_id)
