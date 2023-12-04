@@ -81,4 +81,5 @@ if __name__ == "__main__":
         log_level=options.log_level.lower(),
         workers=1,
         reload=options.reload,
+        timeout_keep_alive=180,
     )
