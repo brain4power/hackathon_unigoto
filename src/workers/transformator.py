@@ -74,13 +74,13 @@ async def transformator(stream) -> None:
                 working_from_page = int(msg_value.from_page) - 1
                 working_to_page = max(working_from_page - batch_size, to_page)
 
-                logger.info(f"start get direction_records")
-                query = await connection.execute(
-                    select(EducationDirection.direction_id, EducationDirection.faculty_id)
-                )
-                direction_records = query.fetchall()
-                logger.info(f"Done get {len(direction_records)} direction_records")
-                faculty_ids = [d.faculty_id for d in direction_records]
+                # logger.info(f"start get direction_records")
+                # query = await connection.execute(
+                #     select(EducationDirection.direction_id, EducationDirection.faculty_id)
+                # )
+                # direction_records = query.fetchall()
+                # logger.info(f"Done get {len(direction_records)} direction_records")
+                # faculty_ids = [d.faculty_id for d in direction_records]
                 while working_from_page >= to_page:
                     # main cycle
                     query = (
@@ -97,8 +97,8 @@ async def transformator(stream) -> None:
                             ))
                     )
                     logger.info(f"direction query: {query}")
-                    if direction_records:
-                        query = query.where(~RawData.university_id.in_(faculty_ids))
+                    # if direction_records:
+                    #     query = query.where(~RawData.university_id.in_(faculty_ids))
                     query = await connection.execute(query)
                     new_faculty_records = query.fetchall()
                     logger.info(f"Got {len(new_faculty_records)} records")
@@ -120,7 +120,7 @@ async def transformator(stream) -> None:
                         new_faculty_ids = new_direction_ids.fetchall()
                         new_faculty_ids = [f.faculty_id for f in new_faculty_ids]
                         logger.info(f"New new_faculty_ids len: {len(new_faculty_ids)}")
-                        faculty_ids.extend(new_faculty_ids)
+                        # faculty_ids.extend(new_faculty_ids)
                         await connection.commit()
                         logger.info(f"Done insert new EducationDirection")
 
@@ -133,7 +133,7 @@ async def transformator(stream) -> None:
                                 RawData.page_number <= working_from_page,
                                 RawData.page_number >= working_to_page,
                                 RawData.g_merged_data != "",
-                                RawData.faculty_id.in_(faculty_ids),
+                                # RawData.faculty_id.in_(faculty_ids),
                             ))
                     )
                     new_records_data = await connection.execute(query)
