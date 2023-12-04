@@ -6,10 +6,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # Project
+from utils import get_embedding_model
 from config import db
 from models import *
 from api.schemas import *
-from utils import get_embedding_model
 
 router = APIRouter()
 
@@ -24,20 +24,23 @@ async def search_directions(
     body: SearchBody,
     session: AsyncSession = Depends(db.get_db_session),
 ):
-    query = " ".join([
-        body.city_title,
-        body.about,
-        body.activities,
-        body.books,
-        body.games,
-        body.interests,
-    ])
-
+    query = " ".join(
+        [
+            body.city_title,
+            body.about,
+            body.activities,
+            body.books,
+            body.games,
+            body.interests,
+        ]
+    )
+    logger.info(f"search query: {query}")
     embedding_model = get_embedding_model()
+    logger.info(f"done get embedding_model")
     device = "cuda" if torch.cuda.is_available() else "cpu"
     query_embedding = embedding_model.encode(query, convert_to_tensor=True, show_progress_bar=True)
     query_embedding = query_embedding.to(device)
-
+    logger.info(f"done transform query to query_embedding")
     # university_id
     # university_name
     # faculty_id
