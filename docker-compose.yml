@@ -73,8 +73,8 @@ services:
   airflow-webserver:
     <<: *airflow-common
     command: webserver
-    ports:
-      - "8080:8080"
+#    ports:
+#      - "8080:8080"
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
       interval: 30s
@@ -328,8 +328,8 @@ services:
     container_name: h-api
     restart: unless-stopped
     build: ./src/api
-    ports:
-      - "8010:80"
+#    ports:
+#      - "8010:80"
     depends_on:
       - h-data-pg
     command: uvicorn main:app --host 0.0.0.0 --port 80 --proxy-headers
@@ -337,6 +337,18 @@ services:
       - .env
     environment:
       PROJECT_NAME: ${COMPOSE_PROJECT}
+
+  h-nginx:
+    image: nginx:1.23.2
+    container_name: h-nginx
+    restart: unless-stopped
+    volumes:
+      - ./configs/${STAND_CONFIG_FOLDER}/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./configs/${STAND_CONFIG_FOLDER}/nginx/conf.d/:/etc/nginx/conf.d/
+    ports:
+      - "80:80"
+    depends_on:
+      - h-api
 
 volumes:
   postgres-db-volume:
