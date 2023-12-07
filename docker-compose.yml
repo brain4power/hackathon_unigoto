@@ -353,7 +353,7 @@ services:
   h-client:
     container_name: h-client
     restart: unless-stopped
-    build: ./src/client
+    build: ./client
     command: sh -c "/client/run_client.sh"
     environment:
       API_PING_URI: "http://84.201.178.7/api/ping/"
