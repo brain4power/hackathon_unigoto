@@ -350,5 +350,14 @@ services:
     depends_on:
       - h-api
 
+  h-client:
+    container_name: h-client
+    restart: unless-stopped
+    build: ./src/client
+    command: sh -c "/code/client/run_client.sh"
+    environment:
+      API_PING_URI: "http://84.201.178.7/api/ping/"
+      API_SEARCH_URI: "http://84.201.178.7/api/search/search"
+
 volumes:
   postgres-db-volume:
