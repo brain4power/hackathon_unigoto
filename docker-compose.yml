@@ -354,7 +354,7 @@ services:
     container_name: h-client
     restart: unless-stopped
     build: ./client
-    command: sh -c "/client/run_client.sh"
+    command: sh -c "/app/client/run_client.sh"
     environment:
       API_PING_URI: "http://84.201.178.7/api/ping/"
       API_SEARCH_URI: "http://84.201.178.7/api/search/search"
