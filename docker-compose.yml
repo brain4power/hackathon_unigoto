@@ -299,8 +299,8 @@ services:
   h-data-pg:
     container_name: h-data-pg
     image: ankane/pgvector
-#    ports:
-#      - "55432:5432"
+    ports:
+      - "55432:5432"
     env_file:
       - .env
     volumes:
