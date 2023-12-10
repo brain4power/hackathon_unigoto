@@ -3,13 +3,14 @@ import time
 from collections.abc import Iterable
 from datetime import datetime
 from functools import partial
+from typing import Literal
 from uuid import uuid4
 
 import pandas as pd
 import requests
 import streamlit as st
 
-from config import CONTRIBUTORS, LINKS
+from config import CONTRIBUTORS_MD, LINKS_MD, METRICS, REQUEST_BODY, USER_INPUT
 
 endpoint_ping = os.getenv("API_PING_URI")
 endpoint_search = os.getenv("API_SEARCH_URI")
@@ -17,47 +18,50 @@ st.text_input = partial(st.text_input, label_visibility="collapsed")
 
 
 def _run_id() -> str:
-    """Generates unique thread-save and multi-machine-resistant folder name for a single run, based on time"""
-    return (
-        datetime.now().astimezone().strftime("%Y-%m-%d--TZ%z-%H-%M-%S")
-        + "--"
-        + str(uuid4())
-    )
+    return f"{datetime.now().astimezone().strftime('%Y-%m-%d--TZ%z-%H-%M-%S')}--{uuid4()}"
 
 
-def _write_list(input: Iterable) -> None:
+def _write_as_list(input: Iterable) -> None:
     for item in input:
         st.markdown(f"* {item}")
 
 
-def call_api_get(url: str) -> dict:
-    response = requests.get(url)
+def call_api(
+    url: str,
+    request: dict = None,
+    call_type: Literal["get", "post"] = "get",
+) -> dict:
+    if call_type == "get":
+        response = requests.get(url)
+    elif call_type == "post":
+        response = requests.post(
+            url,
+            json=request,
+            timeout=180,
+        )
+    else:
+        raise ValueError(f"`call_type` should be 'get' or 'post', not `{call_type}`")
     if response.status_code != 200:
         st.error(f"error {response.status_code} {response.content}")
     return response.json()
 
 
-def call_api_post(url: str, request: dict) -> dict:
-    response = requests.post(
-        url,
-        json=request,
-        timeout=8000,
-    )
-    if response.status_code != 200:
-        st.error(f"error {response.status_code} {response.content}")
-    return response.json()
-
-
-def parse_response(response: dict, show_id: bool) -> pd.DataFrame:
+def parse_response(
+    response: dict,
+    show_id: bool = False,
+    show_metrics: bool = False,
+) -> pd.DataFrame:
     df = pd.DataFrame(response["items"])
     df.index = df.index + 1
     if not show_id:
         df.drop(columns=[col for col in df.columns if "_id" in col], inplace=True)
+    if not show_metrics:
+        df.drop(columns=METRICS, inplace=True)
     return df
 
 
 def main():
-    # sidebar
+    # Sidebar
     with st.sidebar:
         st.markdown(
             "# Big Uh + UniToGo 👨‍🎓👩‍🎓\n"
@@ -71,77 +75,48 @@ def main():
                 value=15,
                 step=1,
             )
+            threshold = st.slider(
+                "Порог",
+                min_value=0.0,
+                max_value=1.0,
+                value=1.0,
+                step=0.05,
+            )
             show_id = st.checkbox("Показывать id")
-
-        st.markdown("## Информация")
-        with st.expander("Участники"):
-            _write_list(CONTRIBUTORS)
-        with st.expander("Ссылки"):
-            _write_list(LINKS)
+            show_metrics = st.checkbox("Показывать метрики")
         with st.expander("Проверить работу API"):
             if st.button("Ping"):
-                response = call_api_get(endpoint_ping)
+                response = call_api(endpoint_ping)
                 success = st.success(response["response"])
                 time.sleep(1)
                 success.empty()
+        st.markdown("## Информация")
+        with st.expander("Участники"):
+            _write_as_list(CONTRIBUTORS_MD)
+        with st.expander("Ссылки"):
+            _write_as_list(LINKS_MD)
 
-    # Main page
+    # User input
     st.markdown("## Расскажи нам про себя")
     with st.expander("Здесь находятся поля для заполнения", expanded=True):
-        # shit happens...
-        if st.checkbox("Заполнить автоматически  / очистить поля"):
-            st.markdown("##### Название города")
-            city_title = st.text_input("1", "Москва")
+        auto_fill = st.checkbox("Заполнить автоматически  / очистить поля")
+        request = REQUEST_BODY.copy()
+        for index, item in enumerate(USER_INPUT):
+            st.markdown(f"##### {item['markdown']}")
+            if auto_fill:
+                request[item["option"]] = st.text_input(f"{index}", item["example"])
+            else:
+                request[item["option"]] = st.text_input(f"{index}")
+    request["limit"] = limit
+    request["threshold"] = threshold
 
-            st.markdown("##### О себе")
-            about = st.text_input("2", "Студент")
-
-            st.markdown("##### Вид деятельности")
-            activities = st.text_input("3", "Программирование, математика")
-
-            st.markdown("##### Любимые книги")
-            books = st.text_input("4", "Задачи по математике")
-
-            st.markdown("##### Любимые игры")
-            games = st.text_input("5", "Стратегии")
-
-            st.markdown("##### Интересы")
-            interests = st.text_input("6", "Музыка, велосипед")
-        else:
-            st.markdown("##### Название города")
-            city_title = st.text_input("1")
-
-            st.markdown("##### О себе")
-            about = st.text_input("2")
-
-            st.markdown("##### Вид деятельности")
-            activities = st.text_input("3")
-
-            st.markdown("##### Любимые книги")
-            books = st.text_input("4")
-
-            st.markdown("##### Любимые игры")
-            games = st.text_input("5")
-
-            st.markdown("##### Интересы")
-            interests = st.text_input("6")
-
-    request = {
-        "city_title": city_title,
-        "about": about,
-        "activities": activities,
-        "books": books,
-        "games": games,
-        "interests": interests,
-        "limit": limit,
-    }
-
+    # Analysis and results
     if st.button("Отправить на анализ", use_container_width=True):
-        with st.spinner("Wait for it..."):
-            response = call_api_post(endpoint_search, request)
+        with st.spinner("Обработка..."):
+            response = call_api(endpoint_search, request, "post")
         st.success("Done!")
         st.markdown("## Результаты анализа")
-        result_table = parse_response(response, show_id)
+        result_table = parse_response(response, show_id, show_metrics)
         st.download_button(
             label="Скачать таблицу",
             data=result_table.to_csv().encode("utf-8"),
