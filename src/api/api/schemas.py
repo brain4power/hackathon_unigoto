@@ -34,6 +34,7 @@ class DirectionOut(TimeToFloatMixin, BaseModel):
     university_name: str
     faculty_id: int
     faculty_name: str
+    cosine_distance: float
 
 
 class SearchBody(BaseModel):
@@ -43,6 +44,7 @@ class SearchBody(BaseModel):
     books: str = Query(description="books", default="")
     games: str = Query(description="games", default="")
     interests: str = Query(description="interests", default="")
+    threshold: float | None = Query(description="threshold", default=None)
     limit: int = Query(description="result length limit", default=15)
 
 

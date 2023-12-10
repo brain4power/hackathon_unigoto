@@ -13,7 +13,7 @@ from api.schemas import *
 
 router = APIRouter()
 
-logger = logging.getLogger("app-logger")
+logger = logging.getLogger("uvicorn.access")
 
 
 @router.post(
@@ -48,12 +48,18 @@ async def search_directions(
     logger.info(f"Search body: {body}")
     cosine_distance_to_embedding = AdditionalData.embedding.cosine_distance(query_embedding)
     query = (
-        select(EducationDirection)
+        select(
+            *EducationDirection.__table__.c,
+            cosine_distance_to_embedding.label("cosine_distance"),
+        )
         .select_from(AdditionalData)
         .join(EducationDirection, EducationDirection.direction_id == AdditionalData.direction_id)
         .order_by(cosine_distance_to_embedding)  # Get the nearest neighbors to a vector
         .limit(body.limit)
     )
+    if body.threshold is not None:
+        # Get items within a certain distance
+        query = query.where(cosine_distance_to_embedding < body.threshold)
     logger.info(f"search query: {query}")
     result = await session.execute(query)
     items = result.fetchall()
