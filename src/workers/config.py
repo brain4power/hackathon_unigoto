@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     TF_CONCURRENCY: int = 1
     TF_PARTITIONS: int = 1
     TF_MAXIMUM_PARSING_PAGES: Optional[int] = None
-    TF_PAGE_BATCH_SIZE: int = 1000
+    TF_PAGE_BATCH_SIZE: int = 10000
     # DB
     POSTGRES_HOST: str
     POSTGRES_PORT: str

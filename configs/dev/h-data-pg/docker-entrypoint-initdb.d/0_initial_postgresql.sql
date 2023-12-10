@@ -22,7 +22,11 @@ $$
 DECLARE
     result TEXT;
 BEGIN
-    result := CONCAT_WS(' ', about, activities, books, games, interests, faculty_name);
+    result := CONCAT_WS(' ', about, activities, books, games, interests);
+    result := TRIM(result);
+    if result != '' then
+        result := CONCAT_WS(' ', result, faculty_name);;
+    end if;
     result := REGEXP_REPLACE(result, '\s+', ' ');
     result := TRIM(result);
     result := LOWER(result);

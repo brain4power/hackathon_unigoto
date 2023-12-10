@@ -63,7 +63,7 @@ async def search_directions(
     logger.info(f"search query: {query}")
     result = await session.execute(query)
     items = result.fetchall()
-    items = [i[0] for i in items]
+    # items = [i[0] for i in items]
     logger.info(f"items: {items}")
     return {
         "items": items,

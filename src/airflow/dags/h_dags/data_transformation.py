@@ -119,14 +119,14 @@ def transformer_dag():
         kafka_config=connection_config,
     )
     # catch task done
-    scrape_done_sql = f"""
+    transformation_done_sql = f"""
     SELECT state FROM h_service_tasks 
     WHERE record_id='{{{{ti.xcom_pull(key='record_id', task_ids='create_transformation_record_id')}}}}' AND state in ('DONE', 'ERROR');
     """  # noqa: E501
     waiting_transformation_done = SqlSensor(
-        task_id=f"waiting_scrape_done",
+        task_id=f"waiting_transformation_done",
         conn_id="h_db_conn",
-        sql=scrape_done_sql,
+        sql=transformation_done_sql,
         success=task_status_handler,
         mode="reschedule",
     )
