@@ -17,6 +17,11 @@ run collector
 docker compose up -d --build data-collector
 
 ```
+run client app
+```shell
+docker compose up -d --build h-client
+
+```
 
 ### utils
 ```shell
