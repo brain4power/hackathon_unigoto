@@ -55,7 +55,7 @@ class RawData(DeclarativeBase):
     graduation_year: Mapped[int]
     g_merged_data: Mapped[str] = mapped_column(
         Computed(
-            "h_concat_string_normalize(country_title, city_title, about, activities, books, games, interests)::VARCHAR",
+            "h_concat_string_normalize(about, activities, books, games, interests, faculty_name)::VARCHAR",
             persisted=True,
         ),
         nullable=False,
