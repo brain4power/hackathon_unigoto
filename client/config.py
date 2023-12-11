@@ -1,3 +1,20 @@
+import os
+
+
+__all__ = [
+    "endpoint_ping",
+    "endpoint_search",
+    "CONTRIBUTORS_MD",
+    "LINKS_MD",
+    "REQUEST_BODY",
+    "USER_INPUT",
+    "METRICS",
+]
+
+# api endpoints
+endpoint_ping = os.getenv("API_PING_URI")
+endpoint_search = os.getenv("API_SEARCH_URI")
+
 # used in st.markdown()
 CONTRIBUTORS = [
     {

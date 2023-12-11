@@ -1,32 +1,29 @@
-import os
 import time
 from collections.abc import Iterable
 from datetime import datetime
 from functools import partial
 from typing import Literal
-from uuid import uuid4
 
 import pandas as pd
 import requests
 import streamlit as st
 
-from config import CONTRIBUTORS_MD, LINKS_MD, METRICS, REQUEST_BODY, USER_INPUT
+from config import *
 
-endpoint_ping = os.getenv("API_PING_URI")
-endpoint_search = os.getenv("API_SEARCH_URI")
+
 st.text_input = partial(st.text_input, label_visibility="collapsed")
 
 
-def _run_id() -> str:
-    return f"{datetime.now().astimezone().strftime('%Y-%m-%d--TZ%z-%H-%M-%S')}--{uuid4()}"
+def _get_results_name() -> str:
+    return f"search_results_{datetime.now().strftime('%Y-%m-%d--%H-%M-%S')}"
 
 
-def _write_as_list(input: Iterable) -> None:
-    for item in input:
+def _write_as_list(input_data: Iterable) -> None:
+    for item in input_data:
         st.markdown(f"* {item}")
 
 
-def call_api(
+def _call_api(
     url: str,
     request: dict = None,
     call_type: Literal["get", "post"] = "get",
@@ -46,7 +43,7 @@ def call_api(
     return response.json()
 
 
-def parse_response(
+def _parse_response(
     response: dict,
     show_id: bool = False,
     show_metrics: bool = False,
@@ -86,7 +83,7 @@ def main():
             show_metrics = st.checkbox("Показывать метрики")
         with st.expander("Проверить работу API"):
             if st.button("Ping"):
-                response = call_api(endpoint_ping)
+                response = _call_api(endpoint_ping)
                 success = st.success(response["response"])
                 time.sleep(1)
                 success.empty()
@@ -103,24 +100,22 @@ def main():
         request = REQUEST_BODY.copy()
         for index, item in enumerate(USER_INPUT):
             st.markdown(f"##### {item['markdown']}")
-            if auto_fill:
-                request[item["option"]] = st.text_input(f"{index}", item["example"])
-            else:
-                request[item["option"]] = st.text_input(f"{index}")
+            args = (f"{index}", item["example"]) if auto_fill else (f"{index}")
+            request[item["option"]] = st.text_input(*args)
     request["limit"] = limit
     request["threshold"] = threshold
 
     # Analysis and results
     if st.button("Отправить на анализ", use_container_width=True):
         with st.spinner("Обработка..."):
-            response = call_api(endpoint_search, request, "post")
+            response = _call_api(endpoint_search, request, "post")
         st.success("Done!")
         st.markdown("## Результаты анализа")
-        result_table = parse_response(response, show_id, show_metrics)
+        result_table = _parse_response(response, show_id, show_metrics)
         st.download_button(
             label="Скачать таблицу",
             data=result_table.to_csv().encode("utf-8"),
-            file_name=f"{_run_id()}.csv",
+            file_name=f"{_get_results_name()}.csv",
             mime="text/csv",
             help="В формате csv",
         )
