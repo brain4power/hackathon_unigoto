@@ -1,6 +1,5 @@
 import os
 
-
 __all__ = [
     "endpoint_ping",
     "endpoint_search",
@@ -53,7 +52,7 @@ CONTRIBUTORS_MD = [f"[{item['name']}]({item['github']}) – {item['role']}" for 
 LINKS = [
     {
         "name": "GitHub",
-        "link": "https://github.com/brain4power/hackathon_unigoto"
+        "link": "https://github.com/brain4power/hackathon_unigoto",
     },
 ]
 LINKS_MD = [f"[{item['name']}]({item['link']})" for item in LINKS]

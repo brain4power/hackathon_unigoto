@@ -1,15 +1,14 @@
 import time
-from collections.abc import Iterable
+from typing import Literal
 from datetime import datetime
 from functools import partial
-from typing import Literal
+from collections.abc import Iterable
 
 import pandas as pd
 import requests
 import streamlit as st
 
 from config import *
-
 
 st.text_input = partial(st.text_input, label_visibility="collapsed")
 
@@ -61,8 +60,7 @@ def main():
     # Sidebar
     with st.sidebar:
         st.markdown(
-            "# Big Uh + UniToGo 👨‍🎓👩‍🎓\n"
-            "С помощью нашего приложения ты сможешь подобрать себе лучший университет!\n"
+            "# Big Uh + UniToGo 👨‍🎓👩‍🎓\nС помощью нашего приложения ты сможешь подобрать себе лучший университет!\n"
         )
         with st.expander("Продвинутые настройки"):
             limit = st.slider(
