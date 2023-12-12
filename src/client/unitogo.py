@@ -98,7 +98,7 @@ def main():
         request = REQUEST_BODY.copy()
         for index, item in enumerate(USER_INPUT):
             st.markdown(f"##### {item['markdown']}")
-            args = (f"{index}", item["example"]) if auto_fill else (f"{index}")
+            args = (f"{index}", item["example"]) if auto_fill else f"{index}",
             request[item["option"]] = st.text_input(*args)
     request["limit"] = limit
     request["threshold"] = threshold
