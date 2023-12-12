@@ -18,7 +18,10 @@ def cosine_similarity(v1, v2):
     norm_v1 = np.linalg.norm(v1)
     norm_v2 = np.linalg.norm(v2)
     similarity = dot_product / (norm_v1 * norm_v2)
-    return similarity[0]
+    return similarity[0] if isinstance(similarity, np.ndarray) else similarity
+
+def invcosine_dist(v1, v2):
+    return 1.0 - cosine_similarity(v1, v2)
 
 class Student:
 
@@ -29,16 +32,22 @@ class Student:
           faculty, about, activities, books, games, interests, city
 
        self.ff_vector = np.zeros((EMB_DIMS, ), dtype=float)
-
+       self.f_about = np.zeros((EMB_DIMS,), dtype=float)
+       self.f_interests = np.zeros((EMB_DIMS,), dtype=float)
        self.ff_vector = self._make_embedding()
 
     def _make_embedding(self):
        ff_vector = self._eval_part_embedding(self.faculty, FTS_WIGHTS[0])
-       ff_vector += self._eval_part_embedding(self.about, FTS_WIGHTS[1])
+
+       self.f_about = self._eval_part_embedding(self.about, 1.0)
+       ff_vector += FTS_WIGHTS[1]*self.f_about
+
        ff_vector += self._eval_part_embedding(self.activities, FTS_WIGHTS[2])
        ff_vector += self._eval_part_embedding(self.books, FTS_WIGHTS[3])
        ff_vector += self._eval_part_embedding(self.games, FTS_WIGHTS[4])
-       ff_vector += self._eval_part_embedding(self.interests, FTS_WIGHTS[5])
+
+       self.f_interests = self._eval_part_embedding(self.about, 1.0)
+       ff_vector += FTS_WIGHTS[5]*self.f_interests
        return ff_vector
 
     def _eval_part_embedding(self, text: str, weight: float):
@@ -50,9 +59,10 @@ class Student:
       return weight*embidding
 
 class Recommendation:
-    def __init__(self, city: str, facult: str):
-      self.city = city
+    def __init__(self, cities: list[str], facult: str, distance: float):
+      self.cities = cities
       self.facult = facult
+      self.distance = distance
 
 class Faculty:
    def __init__(self, students):
@@ -122,6 +132,20 @@ def make_faculty_dates(df, column_name="faculty_name"):
 FEATURES = ['country_title', 'city_title', 'faculty_name', 'about', 'activities', 'books', 'games', 'interests']
 N_RECOM = 20
 
+
+def jazz_rearrange(faculties: list, similarities: list):
+  arranges =\
+      [(len(faculty.students)*similarity, faculty) for faculty, similarity in zip(faculties, similarities)]
+
+  arranges =sorted(arranges, key=lambda x: x[0], reverse=True)
+
+  recomends = []
+  for distance, faculty in arranges:
+    cities = [student.city for student in faculty.students]
+    recomends.append(Recommendation(cities, faculty.students[0].faculty, distance/len(faculty.students)))
+
+  return recomends
+
 if __name__ == "__main__":
 
   '''
@@ -175,20 +199,20 @@ if __name__ == "__main__":
 
   SEARCH_SPACE = np.array([faculty.faculty_index for faculty in FACULTIES])
   SEARCH_SPACE = np.squeeze(SEARCH_SPACE)
-  knn = NearestNeighbors(n_neighbors=N_RECOM, metric='cosine')
+  knn = NearestNeighbors(n_neighbors=N_RECOM,  metric='cosine')
   knn.fit(SEARCH_SPACE)
 
-  query = Student(
+  query1 = Student(
       about="люблю компьютеры, машинное обучение и программирование",
       books="Стивен Хоккинг, Гарри Поттер, Достоевский, Стругацкие, 12 стульев",
       games="GTA 5, Dota 2, Minecraft",
-      interests="Музыка, кино, программирование",
+      interests="Музыка, кино, программирование, цирковые выступления",
       activities="велосипед, гитара, плавание",
       faculty=" ",
       city="Mocква"
   )
 
-  query = Student(
+  query2 = Student(
       about="защищаю данные",
       books="Страуструп, x64 Assembly Language",
       games="Kerbal Space Program",
@@ -197,12 +221,38 @@ if __name__ == "__main__":
       faculty=" ",
       city="Mocква"
   )
+  query3 = Student(
+      about="встречаю рассветы",
+      books="весь Толстой, Преступление и наказание",
+      games="не играю и не буду начинать",
+      interests="художественная лепка, вышивка",
+      activities="походы, яхтинг",
+      faculty=" ",
+      city="Mocква"
+  )
 
-  distances, ids = knn.kneighbors([query.ff_vector])
-  ids = np.flip(np.squeeze(ids))
-  distances = np.flip(np.squeeze(distances))
+  distances, ids = knn.kneighbors([query2.ff_vector])
+
+  ids = np.squeeze(ids)
+  similarities = np.squeeze(distances)
+  #ids = np.flip(np.squeeze(ids))
+  #similarities = np.flip(np.squeeze(distances))
+
+  faculties =  [FACULTIES[idx] for idx in ids]
+  similarities = [similarities[idx] for idx in range(len(ids))]
+
+  recomends = jazz_rearrange(faculties, similarities)
+
+  for recomned in recomends:
+     print(f'Speciality:{recomned.facult}')
+     print(f'Similarity:{recomned.distance}')
+     print(f'Cities:{recomned.cities}')
+
+
+
   for id in range(len(ids)):
     faculty = FACULTIES[ids[id]]
+
     for recomd in faculty.unique_recomends():
         print(f'City: {recomd.city} Facult: {recomd.facult} Dist {distances[id]}')
 
