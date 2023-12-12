@@ -81,7 +81,7 @@ def main():
             show_metrics = st.checkbox("Показывать метрики")
         with st.expander("Проверить работу API"):
             if st.button("Ping"):
-                response = _call_api(endpoint_ping)
+                response = _call_api(ENDPOINT_PING)
                 success = st.success(response["response"])
                 time.sleep(1)
                 success.empty()
@@ -106,7 +106,7 @@ def main():
     # Analysis and results
     if st.button("Отправить на анализ", use_container_width=True):
         with st.spinner("Обработка..."):
-            response = _call_api(endpoint_search, request, "post")
+            response = _call_api(ENDPOINT_SEARCH, request, "post")
         st.success("Done!")
         st.markdown("## Результаты анализа")
         result_table = _parse_response(response, show_id, show_metrics)
