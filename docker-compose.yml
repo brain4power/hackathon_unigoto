@@ -353,11 +353,10 @@ services:
   h-client:
     container_name: h-client
     restart: unless-stopped
-    build: ./client
-    command: sh -c "/app/client/run_client.sh"
-    environment:
-      API_PING_URI: "http://84.201.178.7/api/ping/"
-      API_SEARCH_URI: "http://84.201.178.7/api/search/search"
+    build: ./src/client
+    command: streamlit run /app/client/unitogo.py --server.port=8501 --server.address=0.0.0.0 --server.enableCORS false
+    env_file:
+      - .env
 
 volumes:
   postgres-db-volume:

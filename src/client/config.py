@@ -11,8 +11,8 @@ __all__ = [
 ]
 
 # api endpoints
-endpoint_ping = os.getenv("API_PING_URI")
-endpoint_search = os.getenv("API_SEARCH_URI")
+endpoint_ping = os.getenv("CLIENT_API_PING_URI")
+endpoint_search = os.getenv("CLIENT_API_SEARCH_URI")
 
 # used in st.markdown()
 CONTRIBUTORS = [
