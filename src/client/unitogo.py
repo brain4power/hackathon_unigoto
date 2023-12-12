@@ -67,12 +67,12 @@ def main():
                 "Лимит выдачи результатов",
                 min_value=1,
                 max_value=50,
-                value=15,
+                value=20,
                 step=1,
             )
             threshold = st.slider(
                 "Порог",
-                min_value=0.0,
+                min_value=0.1,
                 max_value=1.0,
                 value=1.0,
                 step=0.05,
@@ -107,17 +107,21 @@ def main():
     if st.button("Отправить на анализ", use_container_width=True):
         with st.spinner("Обработка..."):
             response = _call_api(ENDPOINT_SEARCH, request, "post")
-        st.success("Done!")
-        st.markdown("## Результаты анализа")
-        result_table = _parse_response(response, show_id, show_metrics)
-        st.download_button(
-            label="Скачать таблицу",
-            data=result_table.to_csv().encode("utf-8"),
-            file_name=f"{_get_results_name()}.csv",
-            mime="text/csv",
-            help="В формате csv",
-        )
-        st.table(result_table)
+        if response["items"]:
+            st.success("Done!")
+            st.markdown("## Результаты анализа")
+            result_table = _parse_response(response, show_id, show_metrics)
+            st.download_button(
+                label="Скачать таблицу",
+                data=result_table.to_csv().encode("utf-8"),
+                file_name=f"{_get_results_name()}.csv",
+                mime="text/csv",
+                help="В формате csv",
+            )
+            st.table(result_table)
+        else:
+            st.error("Результаты не найдены. Пожалуйста, попробуйте снова.")
+            st.markdown("> ⚠️ Увеличьте порог выдачи: `Боковое меню` → `Продвинутые настройки` → `Порог`")
 
 
 if __name__ == "__main__":
