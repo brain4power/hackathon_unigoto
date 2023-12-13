@@ -1,3 +1,26 @@
+# Big Ear + UniToGo 👨‍🎓👩‍🎓
+
+Find your perfect university fit with our app
+
+## Architecture
+
+![ScreenShot](img/architecture.png)
+
+## Links
+
+* [Project web-page](http://84.201.178.7/) (build on [Streamlit](https://github.com/streamlit/streamlit))
+* [API documentation](http://84.201.178.7/docs) (build on [Fastapi](https://github.com/tiangolo/fastapi))
+* [Detailed project description](https://docs.google.com/document/d/1XrHEvw7chDHATpiYBnVK8PNxD9LxPhFZ/edit)
+
+## Contributors
+
+* [Edward Tuomas](https://github.com/ToyOwl) – Software Developer
+* [Tatiana Anisimova](https://github.com/t-linguist) –  ML Engineer
+* [Artem Golubev](https://github.com/arqoofficial) – Business Analyst
+* [Alexey Gukov](https://github.com/brain4power) – MLOps Engineer
+* [Vyacheslav Kolotiy](https://github.com/kv49) – PM
+* [Viktor Roterman](https://github.com/ViktorRtm) – Test Automation Engineer
+
 # Dev
 ```shell
 cp configs/dev/.env .env
