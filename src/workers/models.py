@@ -16,6 +16,9 @@ __all__ = [
     "EducationDirection",
     "AdditionalData",
     "ServiceTask",
+    "DirectionUniversity",
+    "ProgrammVector",
+    "CurrenUniversity",
 ]
 
 
@@ -116,3 +119,44 @@ class ServiceTask(DeclarativeBase):
     to_page: Mapped[int | None]
     state: Mapped[str]
     comment: Mapped[str | None]
+
+
+# New table for seach university based on embedding of faculty
+class DirectionUniversity(DeclarativeBase):
+    __tablename__ = "h_edu_direct2univ"
+
+    university_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("h_edu_universities.direction_id", onupdate="CASCADE"),
+    )
+    direction_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("h_edu_direction.direction_id", onupdate="CASCADE"),
+    )
+
+
+# New table for seach university based on embedding of faculty
+class ProgrammVector(DeclarativeBase):
+    __tablename__ = "h_edu_direction"
+
+    direction_id: Mapped[UUID] = mapped_column(
+        primary_key=True,
+        default=uuid4,
+        server_default=func.gen_random_uuid(),
+    )
+    value: Mapped[str]
+    embedding: Mapped[Vector] = mapped_column(Vector(384))
+
+
+# New table for seach university based on embedding of faculty
+class CurrenUniversity(DeclarativeBase):
+    __tablename__ = "h_edu_universities"
+
+    university_id: Mapped[UUID] = mapped_column(
+        primary_key=True,
+        default=uuid4,
+        server_default=func.gen_random_uuid(),
+    )
+    full_name: Mapped[str]
+    postcode: Mapped[str]
+    city: Mapped[str]
+    longitude: Mapped[str]
+    latitude: Mapped[str]    
