@@ -70,13 +70,6 @@ def main():
                 value=20,
                 step=1,
             )
-            threshold = st.slider(
-                "Порог",
-                min_value=0.1,
-                max_value=1.0,
-                value=1.0,
-                step=0.05,
-            )
             show_id = st.checkbox("Показывать id")
             show_metrics = st.checkbox("Показывать метрики")
         with st.expander("Проверить работу API"):
@@ -90,6 +83,8 @@ def main():
             _write_as_list(CONTRIBUTORS_MD)
         with st.expander("Ссылки"):
             _write_as_list(LINKS_MD)
+        with st.expander("Версии"):
+            _write_as_list(VERSIONS_MD)
 
     # User input
     st.markdown("## Расскажи нам про себя")
@@ -101,7 +96,6 @@ def main():
             args = (f"{index}", item["example"]) if auto_fill else f"{index}"
             request[item["option"]] = st.text_input(*args)
     request["limit"] = limit
-    request["threshold"] = threshold
 
     # Analysis and results
     if st.button("Отправить на анализ", use_container_width=True):
@@ -121,7 +115,6 @@ def main():
             st.table(result_table)
         else:
             st.error("Результаты не найдены. Пожалуйста, попробуйте снова.")
-            st.markdown("> ⚠️ Увеличьте порог выдачи: `Боковое меню` → `Продвинутые настройки` → `Порог`")
 
 
 if __name__ == "__main__":

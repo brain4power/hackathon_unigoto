@@ -1,6 +1,7 @@
 import os
 
 __all__ = [
+    "VERSIONS_MD",
     "ENDPOINT_PING",
     "ENDPOINT_SEARCH",
     "CONTRIBUTORS_MD",
@@ -9,6 +10,15 @@ __all__ = [
     "USER_INPUT",
     "METRICS",
 ]
+
+# versions
+VERSIONS = [
+    {
+        "name": "Web",
+        "version": "0.0.3",
+    },
+]
+VERSIONS_MD = [f"**{item['name']}** – {item['version']}" for item in VERSIONS]
 
 # api endpoints
 ENDPOINT_PING = os.getenv("CLIENT_API_PING_URI")
@@ -65,8 +75,8 @@ REQUEST_BODY = {
     "books": "",
     "games": "",
     "interests": "",
-    "threshold": 0,
-    "limit": 15,
+    "threshold": 1,
+    "limit": 20,
 }
 
 USER_INPUT = [
