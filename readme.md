@@ -15,12 +15,10 @@ docker compose run --rm --no-deps data-collector sh -c 'python -m scripts.init_d
 run collector
 ```shell
 docker compose up -d --build data-collector
-
 ```
-run client app
+run all services
 ```shell
-docker compose up -d --build h-client
-
+docker compose up -d --build
 ```
 
 ### utils
