@@ -15,7 +15,7 @@ __all__ = [
 VERSIONS = [
     {
         "name": "Web",
-        "version": "0.0.4",
+        "version": "0.0.5",
     },
 ]
 VERSIONS_MD = [f"**{item['name']}** – {item['version']}" for item in VERSIONS]

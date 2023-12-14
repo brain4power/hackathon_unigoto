@@ -354,7 +354,7 @@ services:
     container_name: h-client
     restart: unless-stopped
     build: ./src/client
-    command: streamlit run /app/client/unitogo.py --server.port=8501 --server.address=0.0.0.0 --server.enableCORS false
+    command: streamlit run /app/client/unigoto.py --server.port=8501 --server.address=0.0.0.0 --server.enableCORS false
     env_file:
       - .env
 

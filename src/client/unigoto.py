@@ -60,7 +60,7 @@ def main():
     # Sidebar
     with st.sidebar:
         st.markdown(
-            "# Big Ear + UniToGo 👨‍🎓👩‍🎓\nС помощью нашего приложения ты сможешь подобрать себе лучший университет!\n"
+            "# Big Ear + UniGoTo 👨‍🎓👩‍🎓\nС помощью нашего приложения ты сможешь подобрать себе лучший университет!\n"
         )
         with st.expander("Продвинутые настройки"):
             limit = st.slider(
