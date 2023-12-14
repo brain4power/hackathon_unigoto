@@ -1,4 +1,4 @@
-# Big Ear + UniToGo 👨‍🎓👩‍🎓
+# Big Ear + UniGoTo 👨‍🎓👩‍🎓
 
 Find your perfect university fit with our app
 
