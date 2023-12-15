@@ -166,12 +166,35 @@ async def transformator(stream) -> None:
                             insert(AdditionalData).values(
                                 data_chunk
                             ).on_conflict_do_nothing(index_elements=["raw_record_id"])
-                        )
+                        )                    
                     logger.info(f"Done cycle with working_from_page: {working_from_page}, "
                                 f"working_to_page: {working_to_page}")
                     # redeclare working pages
                     working_from_page = working_to_page - 1
                     working_to_page = max(working_from_page - batch_size, to_page)
+
+                # filling out the table embeddings
+                # select name of programm
+                query = (
+                        select(ProgrammVector.value, ProgrammVector.direction_id)
+                    )
+                programm_name_data = await connection.execute(query)
+                programm_name_data = programm_name_data.fetchall()
+                programm_name_list = [r.value for r in programm_name_data]
+                # make embedding for programm name
+                programm_embeddings = embedding_model.encode(programm_name_list)
+                insert_programm_vec = [
+                        {
+                            "direction_id": record.direction_id,
+                            "embedding": programm_embeddings[idx],
+                        }
+                        for idx, record in enumerate(programm_name_data)
+                    ]
+                for data_chunk in insert_programm_vec:
+                        await connection.execute(
+                            insert(ProgrammVector).values(
+                                data_chunk
+                            ).on_conflict_do_nothing(index_elements=["direction_id"])
 
                 task_update_values = {"state": "DONE", "to_page": working_from_page + 1,
                                       "time_task_end": datetime.now()}
